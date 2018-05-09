@@ -91,7 +91,10 @@ def parse_args():
     parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -d google.com")
     parser.error = parser_error
     parser._optionals.title = "OPTIONS"
-    parser.add_argument('-d', '--domain', help="Domain name to enumerate it's subdomains", required=True)
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-d', '--domain', help="Domain name to enumerate it's subdomains.")
+    group.add_argument('-D', '--domains', help="Line-delimted file containing domains.", type=argparse.FileType('r'))
     parser.add_argument('-b', '--bruteforce', help='Enable the subbrute bruteforce module', nargs='?', default=False)
     parser.add_argument('-p', '--ports', help='Scan the found subdomains against specified tcp ports')
     parser.add_argument('-v', '--verbose', help='Enable Verbosity and display results in realtime', nargs='?', default=False)
@@ -104,7 +107,7 @@ def parse_args():
 def write_file(filename, subdomains):
     # saving subdomains results to output file
     print("%s[-] Saving results to file: %s%s%s%s" % (Y, W, R, filename, W))
-    with open(str(filename), 'wt') as f:
+    with open(str(filename), 'at') as f:
         for subdomain in subdomains:
             f.write(subdomain + os.linesep)
 
@@ -878,7 +881,7 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
     domain_check = re.compile("^(http|https)?[a-zA-Z0-9]+([\-\.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$")
     if not domain_check.match(domain):
         if not silent:
-            print(R + "Error: Please enter a valid domain" + W)
+            print(R + "Error: Invalid domain names" + W)
         return []
 
     if not domain.startswith('http://') or not domain.startswith('https://'):
@@ -969,6 +972,7 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
 if __name__ == "__main__":
     args = parse_args()
     domain = args.domain
+    domains = args.input_file
     threads = args.threads
     savefile = args.output
     ports = args.ports
@@ -977,5 +981,11 @@ if __name__ == "__main__":
     engines = args.engines
     if verbose or verbose is None:
         verbose = True
+
     banner()
-    res = main(domain, threads, savefile, ports, silent=False, verbose=verbose, enable_bruteforce=enable_bruteforce, engines=engines)
+
+    if domain:
+        domains = [ domain ]
+
+    for domain in domains:
+        res = main(domain, threads, savefile, ports, silent=False, verbose=verbose, enable_bruteforce=enable_bruteforce, engines=engines)
