@@ -972,7 +972,7 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
 if __name__ == "__main__":
     args = parse_args()
     domain = args.domain
-    domains = args.input_file
+    domains = args.domains
     threads = args.threads
     savefile = args.output
     ports = args.ports
